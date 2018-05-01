@@ -1,0 +1,3 @@
+addpath ("./m")
+addpath ("./oct")
+pkg load signal
