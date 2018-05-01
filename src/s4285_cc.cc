@@ -79,11 +79,11 @@ private:
   octave_value_list   _oct_chunk_counter;
 } ;
 
-DEFUN_DLD (stanag_cc,
+DEFUN_DLD (s4285_cc,
            args,
            ,
            "STANAG4285 decoder\n"
-           "stanag_cc(z,mod)")
+           "s4285_cc(z,mod)")
 {
   octave_value_list retval;
 
