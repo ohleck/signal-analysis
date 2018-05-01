@@ -43,7 +43,7 @@ public:
       c(j) = taps_symbols(j);
     _oct_taps_symbols(_frame_counter) = c;
 
-    uint8NDArray e(dim_vector(1, 128*mod2n(modulation_type())));
+    uint8NDArray e(dim_vector(1, 128*modulation_type()/2));
     for (int j=0; j<e.numel(); ++j)
       e(j) = soft_decision(j);
     _oct_soft_decisions(_frame_counter) = e;

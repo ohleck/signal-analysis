@@ -15,14 +15,11 @@ class channel_estimator : public frame_detector {
 public:
   typedef std::vector<std::uint8_t> uint8_vector_type;
 
-  static int mod2n(int mod) {
-    return std::bitset<8>(mod-1).count();
-  }
   channel_estimator(int taps_data, int taps_symbols, int mod)
     : frame_detector()
     , _scramble(gen_scramble())
     , _symbols(256)
-    , _soft_decisions(128*mod2n(mod))
+    , _soft_decisions(128*mod/2)
     , _taps_data(sps()*2*taps_data+1) // 5 SPS times (past, future)
     , _taps_symbols(taps_symbols)
     , _known_symbols(taps_symbols)
@@ -129,7 +126,7 @@ public:
         } else {                 // data symbols
           s = filter_sample(i);
           filter_update(i, s, _scramble[i-80]*constrain_sample(std::conj(_scramble[i-80])*s));
-          assert(j<128*mod2n(modulation_type()));
+          assert(j<128*modulation_type()/2);
           switch (_modulation_type) {
             case 2: {
               _soft_decisions[j++] = _c2.soft_decision(0);
@@ -144,6 +141,8 @@ public:
               _soft_decisions[j++] = _c8.soft_decision(2);
               _soft_decisions[j++] = _c8.soft_decision(1);
               _soft_decisions[j++] = _c8.soft_decision(0);
+              // here comes the erasure
+              _soft_decisions[j++] = 127;
               break;
             }
           }
@@ -153,7 +152,7 @@ public:
 
         std::cout << "__symb " << i << " " << _symbols[i] << std::endl;
         if (i == 255) {
-          assert(j == 128*mod2n(modulation_type()));
+          assert(j == 128*modulation_type()/2);
           process_frame_data(_soft_decisions.begin(), _soft_decisions.end());
         }
       }

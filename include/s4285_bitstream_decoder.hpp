@@ -16,7 +16,7 @@ class bitstream_decoder : public channel_estimator {
 public:
   bitstream_decoder(int taps_data, int taps_symbols, int mod)
     : channel_estimator(taps_data, taps_symbols, mod)
-    , _deinterleaver(12*mod2n(mod))
+    , _deinterleaver(12*mod/2) // for now using the long interleaver only
     , _soft_symbol_buffer(256)
     , _i(0)
     , _viterbi_decoder(128)
