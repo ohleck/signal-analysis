@@ -8,6 +8,10 @@ C++/octave code for analyzing signals on VLF,LF,MF,HF
 * C++ compiler
 * octave (+signal package)
 
+## Installation
+* `make` builds the octave .oct files
+* signal octave package: `pkg install -forge signal`, see also [http://wiki.octave.org/Octave-Forge](http://wiki.octave.org/Octave-Forge)
+
 ## Contents
 ### FSK bit stream extraction
 `m/analyze_fsk.m`
