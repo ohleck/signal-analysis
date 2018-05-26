@@ -21,11 +21,11 @@ DEFUN_DLD (gauss_mod2_cc,
 
   boolMatrix a(args(0).array_value());
   boolMatrix x(args(1).array_value());
-  if (a.size(0) != x.size(0) || a.size(0) != a.size(1) || x.size(1) != 1)
+  if (a.dim1() != x.dim1() || a.dim1() != a.dim2() || x.dim2() != 1)
     error("dim mismatch");
 
   // (1) upper-triangular form
-  const int n(a.size(0));
+  const int n(a.dim1());
   for (int k=0; k<n; ++k) {
     int idx(-1);
     for (int l=k; l<n; ++l) {
