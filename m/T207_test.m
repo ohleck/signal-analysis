@@ -50,7 +50,7 @@ function m=T207_test(fn)
   stairs(100*success);
   axis([1 14 0 100]);
   title(fn);
-  xlabel 'frame start offset';
+  xlabel 'start bit offset';
   ylabel 'success (%)';
   grid on
 
