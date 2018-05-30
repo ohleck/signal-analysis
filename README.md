@@ -49,3 +49,8 @@ decoder with soft symbol input
 Currently the 600,1200,2400 baud modes with long interleaver are
 supported. The 2400 baud mode is untested since I did not find any
 signal on air using this mode
+
+### T-207 test
+`m/T207_test.m` detects the presence of [T-207
+checksums](http://i56578-swl.blogspot.com/search/label/T-207) in a
+given bit stream
