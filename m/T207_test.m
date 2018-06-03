@@ -7,8 +7,11 @@
 ##
 ## input:  fn ... filename containing a string of 0's and 1's (no space between)
 ## output: m  ... T-207 success rate [0..1]
+##         a  ... aligned bit frames: crc in a(:,13:14)
 
-function m=T207_test(fn)
+function [m,a]=T207_test(fn)
+  m      = 0;
+  a      = [];
   fid    = fopen(fn);
   fsk    = fgetl(fid);
   fclose(fid);
@@ -35,12 +38,13 @@ function m=T207_test(fn)
   end
 
   [m,i] = max(success);
-
+  a     = frames{i};
+  
   clf;
 
   subplot(2,3,[1 2 4 5]);
-  n = size(frames{i})(1);
-  imagesc([1.5 14.5], [1 n], frames{i});
+  n = size(a,1);
+  imagesc([1.5 14.5], [1 n], a);
   title(fn);
   xlabel 'index';
   ylabel 'frame number';
