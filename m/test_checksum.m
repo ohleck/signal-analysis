@@ -37,4 +37,10 @@ function [counter,sum_data,checksum]=test_checksum(bits, k, m)
   sum_data = sum_data{i};
   checksum = checksum{i};
 
+  clf;
+  stairs(counter);
+  xlim([1 k]);
+  xlabel 'frame offset'
+  ylabel 'number of checksum colisions'
+  title(sprintf('test for [data(1:%d) checksum(1:%d)] frames', k-m, m));
 endfunction
