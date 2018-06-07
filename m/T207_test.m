@@ -8,8 +8,9 @@
 ## input:  fn ... filename containing a string of 0's and 1's (no space between)
 ## output: m  ... T-207 success rate [0..1]
 ##         a  ... aligned bit frames: crc in a(:,13:14)
+##         p  ... permutation
 
-function [m,a]=T207_test(fn)
+function [m,a,p]=T207_test(fn)
   m      = 0;
   a      = [];
   fid    = fopen(fn);
@@ -18,6 +19,7 @@ function [m,a]=T207_test(fn)
   bits   = fsk=='1';
   k      = 14; # frame size
 
+  modes = perms([0 1 2 3]);
   for start=1:14
     test_bits       = bits(start:end);
     n               = floor(length(test_bits)/k);
@@ -28,18 +30,22 @@ function [m,a]=T207_test(fn)
 
     test_sum        = mod(sum_bits, 4); ## 2,6,10 -> 2, 3,7,11 -> 3, 0,4,8,12 -> 0, 1,5,9 -> 1
 
-    success(start)  = 0;
-    success(start) += sum(checksum(test_sum==0) == 3);
-    success(start) += sum(checksum(test_sum==1) == 1);
-    success(start) += sum(checksum(test_sum==2) == 2);
-    success(start) += sum(checksum(test_sum==3) == 0);
-    printf("processed rows:%i success(%2d):%i (%5.1f%%) \n", n, start, success(start), 100*success(start)/n);
-    success(start) /= n;
+    for m=1:size(modes,1)
+      success(start,m)  = 0;
+      success(start,m) += sum(checksum(test_sum==0) == modes(m,1));
+      success(start,m) += sum(checksum(test_sum==1) == modes(m,2));
+      success(start,m) += sum(checksum(test_sum==2) == modes(m,3));
+      success(start,m) += sum(checksum(test_sum==3) == modes(m,4));
+      printf("mode:%i processed rows:%i success(%2d):%i (%5.1f%%) \n", m, n, start, success(start,m), 100*success(start,m)/n);
+      success(start,m) /= n;
+    end
   end
 
-  [m,i] = max(success);
-  a     = frames{i};
-  
+  [_m,i]   = max(success);
+  [m,mode] = max(_m);
+  p        = modes(mode,:);
+  a        = frames{i(mode)};
+
   clf;
 
   subplot(2,3,[1 2 4 5]);
@@ -59,14 +65,7 @@ function [m,a]=T207_test(fn)
   grid on
 
   subplot(2,3,6);
-  text(-0.2, 0.7, sprintf('T-207 success:  %.1f%%', 100*m), 'fontweight', 'bold', 'fontsize', 13);
+  text(-0.3, 0.79, sprintf('T-207(mode:%d) success: %.1f%% ', mode, 100*m), 'fontweight', 'bold', 'fontsize', 13);
+  text(-0.3, 0.55, [sprintf('mode:%d [',mode) sprintf('%d', modes(mode,:)), ']'], 'fontweight', 'bold', 'fontsize', 13);
   axis('off');
-
 endfunction
-
-
-
-
-
-
-
