@@ -3,14 +3,14 @@
 ## This is initiated by Antonio
 ## see http://i56578-swl.blogspot.com/search/label/T-207 for details
 ##
-## usage: test_T207(fn)
+## usage: T207_detect(fn)
 ##
 ## input:  fn ... filename containing a string of 0's and 1's (no space between)
 ## output: m  ... T-207 success rate [0..1]
 ##         a  ... aligned bit frames: crc in a(:,13:14)
 ##         p  ... permutation
 
-function [m,a,p,success]=T207_test(fn)
+function [m,a,p]=T207_detect(fn)
   m      = 0;
   a      = [];
   fid    = fopen(fn);
