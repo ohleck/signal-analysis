@@ -10,7 +10,7 @@
 ##         a  ... aligned bit frames: crc in a(:,13:14)
 ##         p  ... permutation
 
-function [m,a,p]=T207_test(fn)
+function [m,a,p,success]=T207_test(fn)
   m      = 0;
   a      = [];
   fid    = fopen(fn);
@@ -25,6 +25,10 @@ function [m,a,p]=T207_test(fn)
     n               = floor(length(test_bits)/k);
     frames{start}   = reshape(test_bits(1:n*k),k,n)';
 
+    if max(mean(frames{start}(:,13:14))) > 0.9
+      success(start,1:length(modes)) = -1;
+      continue;
+    end
     sum_bits        = sum(frames{start}(:,1:12), 2);
     checksum        = frames{start}(:,13:14)*[2; 1]; ## 00 -> 0; 10 -> 2; 11->3, 01 -> 1
 
@@ -36,7 +40,9 @@ function [m,a,p]=T207_test(fn)
       success(start,m) += sum(checksum(test_sum==1) == modes(m,2));
       success(start,m) += sum(checksum(test_sum==2) == modes(m,3));
       success(start,m) += sum(checksum(test_sum==3) == modes(m,4));
-      printf("mode:%i processed rows:%i success(%2d):%i (%5.1f%%) \n", m, n, start, success(start,m), 100*success(start,m)/n);
+      if success(start,m)/n > 0.9
+        printf("mode:%i processed rows:%i success(%2d):%i (%5.1f%%) \n", m, n, start, success(start,m), 100*success(start,m)/n);
+      end
       success(start,m) /= n;
     end
   end
@@ -57,15 +63,23 @@ function [m,a,p]=T207_test(fn)
   line([13 13 15 15 13], [0 n n 0 0], 'color', 'red', 'linewidth', 3);
 
   subplot(2,3,3);
-  stairs(100*success);
-  axis([1 14 0 100]);
+  imagesc([0 13], [1:24], 100*success', [0 100]);
+  ylabel(colorbar('eastoutside'), 'success (%)', 'fontsize', 10);
+  yticks([1:1:24])
+  yt={};
+  for i=1:length(modes)
+    yt{i} = sprintf('%d%d%d%d', modes(i,1), modes(i,2), modes(i,3), modes(i,4));
+  end
+  yticklabels(yt);
+  set(gca, 'fontsize', 7);
+  set(get(gca, 'xlabel'), 'fontsize', 10)
+  set(get(gca, 'ylabel'), 'fontsize', 10)
   title(fn);
+  set(get(gca, 'title'), 'fontsize', 10)
   xlabel 'start bit offset';
-  ylabel 'success (%)';
-  grid on
+  ylabel 'permutation';
 
   subplot(2,3,6);
-  text(-0.3, 0.79, sprintf('T-207(mode:%d) success: %.1f%% ', mode, 100*m), 'fontweight', 'bold', 'fontsize', 13);
-  text(-0.3, 0.55, [sprintf('mode:%d [',mode) sprintf('%d', modes(mode,:)), ']'], 'fontweight', 'bold', 'fontsize', 13);
+  text(-0.3, 0.79, sprintf('T-207[%s] success: %.1f%% ', yt{mode}, 100*m), 'fontweight', 'bold', 'fontsize', 13);
   axis('off');
 endfunction
