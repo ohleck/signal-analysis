@@ -10,27 +10,27 @@
 ##         a  ... aligned bit frames: crc in a(:,13:14)
 ##         p  ... permutation
 
-function [m,a,p]=T207_detect(fn)
+function [m,a,p]=T207_detect(fn,k)
   m      = 0;
   a      = [];
   fid    = fopen(fn);
   fsk    = fgetl(fid);
   fclose(fid);
   bits   = fsk=='1';
-  k      = 14; # frame size
+##  k      = 14; # frame size
 
   modes = perms([0 1 2 3]);
-  for start=1:14
+  for start=1:k
     test_bits       = bits(start:end);
     n               = floor(length(test_bits)/k);
     frames{start}   = reshape(test_bits(1:n*k),k,n)';
 
-    if max(mean(frames{start}(:,13:14))) > 0.9
+    if max(mean(frames{start}(:,k-1:k))) > 0.9
       success(start,1:length(modes)) = -1;
       continue;
     end
-    sum_bits        = sum(frames{start}(:,1:12), 2);
-    checksum        = frames{start}(:,13:14)*[2; 1]; ## 00 -> 0; 10 -> 2; 11->3, 01 -> 1
+    sum_bits        = sum(frames{start}(:,1:k-2), 2);
+    checksum        = frames{start}(:,k-1:k)*[2; 1]; ## 00 -> 0; 10 -> 2; 11->3, 01 -> 1
 
     test_sum        = mod(sum_bits, 4); ## 2,6,10 -> 2, 3,7,11 -> 3, 0,4,8,12 -> 0, 1,5,9 -> 1
 
@@ -56,14 +56,14 @@ function [m,a,p]=T207_detect(fn)
 
   subplot(2,3,[1 2 4 5]);
   n = size(a,1);
-  imagesc([1.5 14.5], [1 n], a);
+  imagesc([1 k], [1 n], a);
   title(fn);
   xlabel 'index';
   ylabel 'frame number';
-  line([13 13 15 15 13], [0 n n 0 0], 'color', 'red', 'linewidth', 3);
+  line(k-0.5+[-1 -1 1 1 -1], 0.5+[0 n n 0 0], 'color', 'red', 'linewidth', 3);
 
   subplot(2,3,3);
-  imagesc([0 13], [1:24], 100*success', [0 100]);
+  imagesc([0 k-1], [1:24], 100*success', [0 100]);
   ylabel(colorbar('eastoutside'), 'success (%)', 'fontsize', 10);
   yticks([1:1:24])
   yt={};
