@@ -8,8 +8,8 @@
 
 class s4285_decoder_oct : public s4285::bitstream_decoder {
 public:
-  s4285_decoder_oct(int taps_data, int taps_symbols, int mod)
-    : s4285::bitstream_decoder(taps_data, taps_symbols, mod)
+  s4285_decoder_oct(int taps_data, int taps_symbols, int mod, int deint_incr)
+    : s4285::bitstream_decoder(taps_data, taps_symbols, mod, deint_incr)
     , _frame_counter(0)
     , _chunk_counter(0)
     , _oct_frame_symb()
@@ -93,9 +93,10 @@ DEFUN_DLD (s4285_cc,
     return retval;
   }
 
-  const int mod = (nargin == 2 ? args(1).int_value() : 2);
+  const int mod        = (nargin >= 2 ? args(1).int_value() : 2);
+  const int deint_incr = (nargin >= 3 ? args(2).int_value() : 12);
 
-  s4285_decoder_oct d(12, 4, mod); // was: 15,6,2
+  s4285_decoder_oct d(12, 4, mod, deint_incr); // was: 15,6,2
 
   const FloatComplexNDArray z = args(0).complex_array_value();
   for (int i=0, n=z.numel(); i<n; ++i)

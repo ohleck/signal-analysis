@@ -14,9 +14,9 @@ namespace s4285 {
 
 class bitstream_decoder : public channel_estimator {
 public:
-  bitstream_decoder(int taps_data, int taps_symbols, int mod)
+  bitstream_decoder(int taps_data, int taps_symbols, int mod, int deinterleaver_increment=12)
     : channel_estimator(taps_data, taps_symbols, mod)
-    , _deinterleaver(12*mod/2) // for now using the long interleaver only
+    , _deinterleaver(deinterleaver_increment*mod/2) // 12 -> long, 1-> short
     , _soft_symbol_buffer(256)
     , _i(0)
     , _viterbi_decoder(128)

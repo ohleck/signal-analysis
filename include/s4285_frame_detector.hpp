@@ -98,7 +98,7 @@ public:
     bool is_locked = false;
     switch (_state) {
       case state::UNLOCKED: {
-        is_locked = detect_synch_single(8.0f);
+        is_locked = detect_synch_single(10.0f);
         break;
       }
       case state::LOCKED: {
