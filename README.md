@@ -54,3 +54,10 @@ signal on air using this mode
 `m/T207_test.m` detects the presence of [T-207
 checksums](http://i56578-swl.blogspot.com/search/label/T-207) in a
 given bit stream
+
+### USB to IQ mode conversion
+`m/r2ct.m` converts a given wav file recorded with USB mode into a new
+wav file in IQ mode where the signal of interest is shifted to 0Hz
+
+### MSK demodulator
+`m/demo_msk.m` demodulated MSK signals and extracts the bit streams

@@ -2,7 +2,7 @@
 
 ## MSK demodulation
 ##   https://www.wescottdesign.com/articles/MSK/msk.pdf
-##   MIL-STD-188-140.010193.pdf
+##   http://everyspec.com/MIL-STD/MIL-STD-0100-0299/MIL-STD-188-140A_10192
 ##
 ## usage: [bX,bY,b]=demod_msk(fn, baud)
 ##
