@@ -37,6 +37,7 @@ function [frac,a,taps]=detect_lfsr_frame(fn, k)
 
   subplot(2,3,[1 2 4 5]);
   imagesc(a);
+  fn = strrep(fn, '_', '\_');
   title(fn);
   xlabel 'index';
   ylabel 'frame number';
