@@ -6,31 +6,29 @@
 ##
 ## this script finds the coefficients of a k=7 r=1/2 convolutional decoder
 ##
-## output:
-##  x ... random binary sequence
-##  y ... concolutionally encoded x
-##  z ... contains the result of the test of the property used to find a,b
-##  s ... state space after all iterations
 
-function [x,y,s,z]=test_conv()
+function test_conv()
 
   ## make up a random binary sequences
-  M = 1000;
-  x = rand(1,M) > 0.5;
+  M = 40;
+  x = uint8(rand(1,M) > 0.5);
 
   ## k=7 r=1/2 convolutional decoder (e.g. used in STANAG 4285)
   a = [1 0 1 1 0 1 1];
   b = [1 1 1 1 0 0 1];
 
+  pu = [1 1];
+  pv = [1 1];
+#  pu = 1;
+#  pv = 1;
   ## encode x
-  y = encode(x, a,b);
+  y = conv_encode(x, a,b, pu, pv);
 
   ## test the property used to find a,b
-  z = test_property(y,a,b);
-  __test_passed__ = all(z(1,:) == z(2,:))
+  __test_passed__ = conv_test(y(1:2:end), y(2:2:end), a,b, [1 1], [1 1])
 
   ## find a,b using a sieve
-  s = find_ab(y);
+#  __conv_detected__ = conv_detect(y(1:2:end), y(2:2:end), 7, [0 1], [ 0 0])
 endfunction
 
 function s=find_ab(y)
@@ -101,10 +99,3 @@ function s=make_state()
   end
 endfunction
 
-function y=encode(x, a,b)
-  y=[];
-  for i=1:numel(x)-7
-    y(end+1) = mod(sum(a .* x(i+[0:6])), 2);
-    y(end+1) = mod(sum(b .* x(i+[0:6])), 2);
-  end
-endfunction

@@ -16,7 +16,7 @@ function [frac,a]=lfsr_test(bits,n)
   end
   u = bits(1+n:2*n)';
 
-  a = gauss_mod2_cc(m, u);
+  [_a,a] = gauss_mod2_cc(m, u);
   frac = 0;
 
   if !isempty(a)

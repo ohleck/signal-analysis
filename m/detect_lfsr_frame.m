@@ -29,7 +29,7 @@ function [frac,a,taps]=detect_lfsr_frame(fn, k)
     end
   end
 
-  [m,j]       = max(frac');
+  [m,j]       = max(frac')
   [success,i] = max(m);
   j           = j(i);
 
@@ -52,13 +52,20 @@ function [frac,a,taps]=detect_lfsr_frame(fn, k)
   set(get(gca, 'title'), 'fontsize', 10)
 
   subplot(2,3,6);
-  text(-0.3, 0.79, sprintf('success: %.1f%% ', 100*success), 'fontweight', 'bold', 'fontsize', 13);
+  text(-0.3, 1.1, sprintf('success: %.1f%% ', 100*success), 'fontweight', 'bold', 'fontsize', 13);
 
+  taps{i,j}
   idx = j+1 - find(taps{i,j})(end:-1:1);
-  s = 'S(t)=';
+  s = 'S(i)=';
   for i=1:length(idx)
-    s=[s sprintf('S(i-%d)+', idx(i))];
+    s=[s sprintf('S(i-%d)', idx(i))];
+    if mod(i,4)==0
+      s=[s sprintf('\n      +')];
+    else
+      s=[s sprintf('+')];
+    end
   end
+  s
   text(-0.4, 0.62, s(1:end-1),  'fontsize', 11);
   axis('off');
 
