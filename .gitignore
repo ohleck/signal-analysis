@@ -1,2 +1,8 @@
 *~
 *.mat
+*.wav
+*.bin
+*.txt
+*.m
+*.png
+octave-workspace
