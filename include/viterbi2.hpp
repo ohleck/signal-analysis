@@ -86,8 +86,8 @@ public:
     int max_metric = *imax;
     for (int k=_decisions.size()>>(N-1); k!=0; --k) {
       v[k-1] = idx_max&1;
-      //      idx_max = _prev[idx_max][decision(k-1)[idx_max]];
-      idx_max = (idx_max>>1) + (decision(k-1)[idx_max] != 0)*(1<<(N-1));
+      //idx_max = _prev[idx_max][decision(k-1)[idx_max]];
+      idx_max = (idx_max>>1) + (decision(k-1)[idx_max] != 0)*(1<<(N-2));
     }
     float const quality = float(max_metric -  _last_max_metric)/255.0;
     _last_max_metric = max_metric;
