@@ -9,7 +9,7 @@
 ##         frac ... success matrix [0,1]
 ##         taps ... cell matrix with taps
 
-function [frac,a,taps]=detect_lfsr_frame(fn, k)
+function [frac,a,taps]=detect_lfsr_frame(fn, k, m)
   if nargin != 3
     print_usage;
   endif
@@ -24,7 +24,7 @@ function [frac,a,taps]=detect_lfsr_frame(fn, k)
   n=floor(length(b)/k);
   a=reshape(b(1:n*k),k,n)';
   for i=1:k;
-    for j=4:32;
+    for j=4:m;
       [frac(i,j),taps{i,j}]=lfsr_test(a(:,i)',j);
     end
   end

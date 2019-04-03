@@ -16,13 +16,14 @@ function [bX,bY,b]=demod_msk(fn, baud)
   [y,fs] = audioread(fn);
   y   = single(y);
   z   = y(:,1)+1i*y(:,2);
-  fsr = 2.5*baud
+#  z = z(2e6+[1:1000e3]);
+  fsr = 5*baud
   zr  = single(resample(z,fsr,fs));
   fprintf(stdout, 'resampling done\n')
   fflush(stdout)
 
-  s1 = pll_init(1/sqrt(2), 10,  baud/2, fsr);
-  s2 = pll_init(1/sqrt(2), 10, -baud/2, fsr);
+  s1 = pll_init(1/sqrt(2), 15,  baud/2, fsr);
+  s2 = pll_init(1/sqrt(2), 15, -baud/2, fsr);
 
   theta1 = pll_cc(s1, zr.**2);
   theta2 = pll_cc(s2, zr.**2);
