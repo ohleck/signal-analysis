@@ -3,11 +3,14 @@
 #ifndef _VITERBI2_SIMPLE_HPP_
 #define _VITERBI2_SIMPLE_HPP_
 
+#include <cassert>
 #include <array>
+#include <algorithm>
 #include <bitset>
 #include <vector>
 
 
+// "half butterfly" soft-decision viterbi decoder
 template<int N>
 class viterbi2 {
 public:
@@ -21,13 +24,15 @@ public:
     , _decisions(len<<N)
     , _metric()
     , _bits()
-    , _prev() {
+    , _prev()
+    , _last_max_metric(0) {
     make_tables();
     reset();
   }
 
   void reset() {
     std::fill_n(_metric.begin(), _metric.size(), 0);
+    _last_max_metric = 0;
   }
 
   vec_type::iterator decision(int i) { return _decisions.begin()+(i<<N); }
@@ -40,25 +45,37 @@ public:
     arr_type new_metric;
     auto jdec = decision(j);
 
+    int mmin = 65535;
+
     for (int i=0; i<M; ++i) {
-      new_metric[i] = (_bits[i][0] ^ s0) + (_bits[i][1] ^ s1);
-      const bool d = _metric[_prev[i][0]] < _metric[_prev[i][1]];
-      jdec[i] = d;
-      new_metric[i] += _metric[_prev[i][d]];
+      new_metric[i]  = (_bits[i][0] ^ s0) + (_bits[i][1] ^ s1);
+      jdec[i]        = _metric[_prev[i][0]] < _metric[_prev[i][1]];
+      new_metric[i] += _metric[_prev[i][jdec[i]]];
+      mmin = std::min(mmin, new_metric[i]);
+    }
+    // avoid path metric overflow
+    if (mmin > (1<<15)) {
+      _last_max_metric -= mmin;
+      for (int i=0; i<M; ++i)
+	new_metric[i] -= mmin;
     }
     std::copy(new_metric.begin(), new_metric.end(), _metric.begin());
   }
 
-  int chainback(vec_type& v) const {
+  float chainback(vec_type& v) {
     assert(v.size() == (_decisions.size()>>N));
 
     auto imax = std::max_element(_metric.begin(), _metric.end());
-    int  idx_max = std::distance(_metric.begin(), imax);
+    int idx_max = std::distance(_metric.begin(), imax);
+    int max_metric = *imax;
     for (int k=_decisions.size()>>N; k!=0; --k) {
       v[k-1] = idx_max&1;
-      idx_max = _prev[idx_max][decision(k-1)[idx_max]];
+      // idx_max = _prev[idx_max][decision(k-1)[idx_max]];
+      idx_max = (idx_max>>1) + (decision(k-1)[idx_max] != 0)*(1<<(N-1));
     }
-    return *imax/255;
+    float const quality = float(max_metric -  _last_max_metric)/255.0;
+    _last_max_metric = max_metric;
+    return quality;
   }
 protected:
   void make_tables() {
@@ -78,6 +95,7 @@ private:
   arr_type  _metric;
   int       _bits[M][2];
   int       _prev[M][2];
+  int       _last_max_metric;
 } ;
 
 #endif // _VITERBI2_SIMPLE_HPP_
