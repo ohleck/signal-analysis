@@ -11,17 +11,17 @@
 
 
 // "half butterfly" soft-decision viterbi decoder
-template<int N>
+template<int K>
 class viterbi2 {
 public:
-  enum { M = 1<<N };
+  enum { M = 1<<K };
 
   typedef std::vector<int>   vec_type;
   typedef std::array<int, M> arr_type;
 
   viterbi2(int len)
     : _poly{0x6d, 0x4f}
-    , _decisions(len<<N)
+    , _decisions(len<<K)
     , _metric()
     , _bits()
     , _prev()
@@ -35,8 +35,8 @@ public:
     _last_max_metric = 0;
   }
 
-  vec_type::iterator decision(int i) { return _decisions.begin()+(i<<N); }
-  vec_type::const_iterator decision(int i) const { return _decisions.begin()+(i<<N); }
+  vec_type::iterator decision(int i) { return _decisions.begin()+(i<<K); }
+  vec_type::const_iterator decision(int i) const { return _decisions.begin()+(i<<K); }
 
   void update(int j, std::uint8_t sym0, std::uint8_t sym1) {
     const int s0 = sym0 ^ 255;
@@ -63,15 +63,15 @@ public:
   }
 
   float chainback(vec_type& v) {
-    assert(v.size() == (_decisions.size()>>N));
+    assert(v.size() == (_decisions.size()>>K));
 
     auto imax = std::max_element(_metric.begin(), _metric.end());
     int idx_max = std::distance(_metric.begin(), imax);
     int max_metric = *imax;
-    for (int k=_decisions.size()>>N; k!=0; --k) {
+    for (int k=_decisions.size()>>K; k!=0; --k) {
       v[k-1] = idx_max&1;
       // idx_max = _prev[idx_max][decision(k-1)[idx_max]];
-      idx_max = (idx_max>>1) + (decision(k-1)[idx_max] != 0)*(1<<(N-1));
+      idx_max = (idx_max>>1) + (decision(k-1)[idx_max] != 0)*(1<<(K-1));
     }
     float const quality = float(max_metric -  _last_max_metric)/255.0;
     _last_max_metric = max_metric;
@@ -80,13 +80,13 @@ public:
 protected:
   void make_tables() {
     for (int i=0, n=M; i<n; ++i) {
-      const std::bitset<N> b[2] = { i&_poly[0], i&_poly[1] };
+      const std::bitset<K> b[2] = { i&_poly[0], i&_poly[1] };
       _bits[i][0] = 255*(b[0].count()%2);
       _bits[i][1] = 255*(b[1].count()%2);
     }
     for (int i=0; i<M; ++i) {
       _prev[i][0] = (i>>1);
-      _prev[i][1] = _prev[i][0] + (1<<(N-1));
+      _prev[i][1] = _prev[i][0] + (1<<(K-1));
     }
   }
 private:

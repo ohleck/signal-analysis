@@ -14,17 +14,17 @@
 //#ifdef _AARCH64_NEON_H_
 
 // AARCh64 SIMD "half butterfly" soft-decision viterbi decoder
-template<int N>
+template<int K>
 class viterbi2 {
 public:
-  enum { M = 1<<N };
+  enum { M = 1<<K };
 
   typedef std::vector<uint16_t>   vec_type;
   typedef std::array<uint16_t, M> arr_type;
 
   viterbi2(int len)
     : _poly{0x6d, 0x4f}
-    , _decisions(len<<N)
+    , _decisions(len<<K)
     , _metric()
     , _bits0()
     , _bits1()
@@ -39,8 +39,8 @@ public:
     _last_max_metric = 0;
   }
 
-  vec_type::iterator decision(int i) { return _decisions.begin()+(i<<N); }
-  vec_type::const_iterator decision(int i) const { return _decisions.begin()+(i<<N); }
+  vec_type::iterator decision(int i) { return _decisions.begin()+(i<<K); }
+  vec_type::const_iterator decision(int i) const { return _decisions.begin()+(i<<K); }
 
   void update(int j, std::uint8_t sym0, std::uint8_t sym1) {
     arr_type new_metric;
@@ -50,10 +50,10 @@ public:
     uint8_t const *pb1    = &_bits1[0];
     uint16_t *pnew_metric = &new_metric[0];
     uint16_t *pmetric0    = &_metric[0];
-    uint16_t *pmetric1    = &_metric[0]+(1<<(N-1));
+    uint16_t *pmetric1    = &_metric[0]+(1<<(K-1));
     uint16_t *pdec        = &jdec[0];
 
-    uint16x8_t mmin = vdupq_n_u16(65535);    
+    uint16x8_t mmin = vdupq_n_u16(65535);
     uint8x8_t  s0   = vdup_n_u8(sym0 ^ 255);
     uint8x8_t  s1   = vdup_n_u8(sym1 ^ 255);
     for (int i=0; i<M/8; ++i) {
@@ -77,33 +77,33 @@ public:
 
       // new_metric[i] += _metric[_prev[i][jdec[i]]];
       uint16x4_t delta_new_metric = vbsl_u16(dec, pm1, pm0);
-      
+
       m = vaddq_u16(m, make_4to8(delta_new_metric));
       vst1q_u16(pnew_metric, m);
       pnew_metric += 8;
 
       mmin = vminq_u16(mmin, m);
     }
-    // avoid path metric overflow    
+    // avoid path metric overflow
     uint16_t const imin = vminvq_u16(mmin);
     if (imin > (1<<15)) {
       _last_max_metric -= imin;
       for (int i=0; i<M; ++i)
 	new_metric[i] -= imin;
-    } 
+    }
     std::copy(new_metric.begin(), new_metric.end(), _metric.begin());
   }
 
   float chainback(vec_type& v) {
-    assert(v.size() == (_decisions.size()>>N));
+    assert(v.size() == (_decisions.size()>>K));
 
     auto imax = std::max_element(_metric.begin(), _metric.end());
     int  idx_max = std::distance(_metric.begin(), imax);
     int  max_metric = *imax;
-    for (int k=_decisions.size()>>N; k!=0; --k) {
+    for (int k=_decisions.size()>>K; k!=0; --k) {
       v[k-1] = idx_max&1;
       //idx_max = _prev[idx_max][decision(k-1)[idx_max] != 0];
-      idx_max = (idx_max>>1) + (decision(k-1)[idx_max] != 0)*(1<<(N-1));
+      idx_max = (idx_max>>1) + (decision(k-1)[idx_max] != 0)*(1<<(K-1));
     }
     float const quality = float(max_metric -  _last_max_metric)/255.0f;
     _last_max_metric = max_metric;
@@ -115,16 +115,16 @@ protected:
     uint16x4x2_t tmp = vzip_u16(x, x);
     return vcombine_u16(tmp.val[0], tmp.val[1]);
   }
-  
+
   void make_tables() {
     for (int i=0, n=M; i<n; ++i) {
-      const std::bitset<N> b[2] = { i&_poly[0], i&_poly[1] };
+      const std::bitset<K> b[2] = { i&_poly[0], i&_poly[1] };
       _bits0[i] = 255*(b[0].count()%2);
       _bits1[i] = 255*(b[1].count()%2);
     }
     for (int i=0; i<M; ++i) {
       _prev[i][0] = (i>>1);
-      _prev[i][1] = _prev[i][0] + (1<<(N-1));
+      _prev[i][1] = _prev[i][0] + (1<<(K-1));
     }
   }
 private:

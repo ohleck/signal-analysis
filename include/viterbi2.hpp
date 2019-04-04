@@ -11,17 +11,17 @@
 
 // soft-decision viterbi decoder
 // based on Phil Karn's libfec
-template<std::size_t N>
+template<std::size_t K>
 class viterbi2 {
 public:
-  enum { M = 1<<(N-1) };
+  enum { M = 1<<(K-1) };
 
   typedef std::vector<int>   vec_type;
   typedef std::array<int, M> arr_type;
 
   viterbi2(int len)
     : _poly{0x6d, 0x4f}
-    , _decisions(len<<(N-1))
+    , _decisions(len<<(K-1))
     , _metric()
     , _bits()
     , _prev()
@@ -36,8 +36,8 @@ public:
     _last_max_metric = 0;
   }
 
-  vec_type::iterator decision(int i) { return _decisions.begin()+(i<<(N-1)); }
-  vec_type::const_iterator decision(int i) const { return _decisions.begin()+(i<<(N-1)); }
+  vec_type::iterator decision(int i) { return _decisions.begin()+(i<<(K-1)); }
+  vec_type::const_iterator decision(int i) const { return _decisions.begin()+(i<<(K-1)); }
 
   void update(int j, std::uint8_t sym0, std::uint8_t sym1) {
     const int s0 = sym0 ^ 255;
@@ -79,15 +79,15 @@ public:
   }
 
   float chainback(vec_type& v) {
-    assert(v.size() == (_decisions.size()>>(N-1)));
+    assert(v.size() == (_decisions.size()>>(K-1)));
 
     auto imax = std::max_element(_metric.begin(), _metric.end());
     int idx_max = std::distance(_metric.begin(), imax);
     int max_metric = *imax;
-    for (int k=_decisions.size()>>(N-1); k!=0; --k) {
+    for (int k=_decisions.size()>>(K-1); k!=0; --k) {
       v[k-1] = idx_max&1;
       //idx_max = _prev[idx_max][decision(k-1)[idx_max]];
-      idx_max = (idx_max>>1) + (decision(k-1)[idx_max] != 0)*(1<<(N-2));
+      idx_max = (idx_max>>1) + (decision(k-1)[idx_max] != 0)*(1<<(K-2));
     }
     float const quality = float(max_metric -  _last_max_metric)/255.0;
     _last_max_metric = max_metric;
@@ -95,14 +95,14 @@ public:
   }
 protected:
   void make_tables() {
-    for (int i=0, n=1<<N; i<n; ++i) {
-      const std::bitset<N> b[2] = { _poly[0]&i, _poly[1]&i };
+    for (int i=0, n=1<<K; i<n; ++i) {
+      const std::bitset<K> b[2] = { _poly[0]&i, _poly[1]&i };
       _bits[i>>1][i&1][0] = 255*(b[0].count()%2);
       _bits[i>>1][i&1][1] = 255*(b[1].count()%2);
     }
     for (int i=0; i<M; ++i) {
       _prev[i][0] = (i>>1);
-      _prev[i][1] = _prev[i][0] + (1<<(N-2));
+      _prev[i][1] = _prev[i][0] + (1<<(K-2));
     }
   }
 private:
